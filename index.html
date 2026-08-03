@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Carrier Route Frequency Visualizer & Analytics</title>
+  <!-- Google Fonts & Icons -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <!-- Leaflet CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  
+  <!-- App Styles -->
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <!-- Navbar -->
+  <nav class="navbar">
+    <div class="brand">
+      <div class="brand-icon">
+        <i class="fa-solid => fa-route"></i>
+      </div>
+      <div>
+        <div class="brand-title">Route Frequency Intelligence</div>
+        <div class="brand-subtitle">Carrier Bidding & Freight Flow Analytics (8,572 Records)</div>
+      </div>
+    </div>
+    <div class="nav-stats">
+      <div class="badge">
+        <i class="fa-solid fa-layer-group"></i> <span id="nav-lane-count">1,935 Lanes</span>
+      </div>
+      <div class="badge">
+        <i class="fa-solid fa-truck-ramp-box"></i> <span id="nav-shipment-count">8,559 Shipments</span>
+      </div>
+    </div>
+  </nav>
+
+  <div class="container">
+    <!-- KPI Summary Grid -->
+    <div class="kpi-grid">
+      <div class="kpi-card">
+        <div class="kpi-icon blue">
+          <i class="fa-solid fa-boxes-stacked"></i>
+        </div>
+        <div class="kpi-data">
+          <div class="kpi-value" id="kpi-shipments">8,559</div>
+          <div class="kpi-label">Total Bids Analyzed</div>
+        </div>
+      </div>
+
+      <div class="kpi-card">
+        <div class="kpi-icon purple">
+          <i class="fa-solid fa-map-location-dot"></i>
+        </div>
+        <div class="kpi-data">
+          <div class="kpi-value" id="kpi-lanes">1,935</div>
+          <div class="kpi-label">Active Route Lanes</div>
+        </div>
+      </div>
+
+      <div class="kpi-card">
+        <div class="kpi-icon amber">
+          <i class="fa-solid fa-fire"></i>
+        </div>
+        <div class="kpi-data">
+          <div class="kpi-value" id="kpi-busiest" style="font-size: 1.1rem; font-weight:700;">El Paso → Everett</div>
+          <div class="kpi-label">Top Corridor (454 Bids)</div>
+        </div>
+      </div>
+
+      <div class="kpi-card">
+        <div class="kpi-icon emerald">
+          <i class="fa-solid fa-warehouse"></i>
+        </div>
+        <div class="kpi-data">
+          <div class="kpi-value" id="kpi-origin">Laredo, TX</div>
+          <div class="kpi-label">Top Origin Hub (1,190 Bids)</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Main Section: Filters + Map -->
+    <div class="main-grid">
+      <!-- Filter Sidebar -->
+      <div class="sidebar">
+        <div class="sidebar-title">
+          <span><i class="fa-solid fa-filter"></i> Filter Corridors</span>
+          <i class="fa-solid fa-sliders"></i>
+        </div>
+
+        <div class="filter-group">
+          <label class="filter-label">Search Location / City</label>
+          <input type="text" id="filter-search" class="filter-input" placeholder="e.g. Laredo, El Paso, Everett...">
+        </div>
+
+        <div class="filter-group">
+          <label class="filter-label">Origin State</label>
+          <select id="filter-origin-state" class="filter-select">
+            <option value="">All Origin States</option>
+          </select>
+        </div>
+
+        <div class="filter-group">
+          <label class="filter-label">Destination State</label>
+          <select id="filter-dest-state" class="filter-select">
+            <option value="">All Destination States</option>
+          </select>
+        </div>
+
+        <div class="filter-group">
+          <label class="filter-label">Min Route Frequency (Bids)</label>
+          <div class="range-container">
+            <input type="range" id="filter-min-volume" class="range-slider" min="1" max="100" value="5">
+            <span class="range-val" id="range-val-text">≥ 5 Bids</span>
+          </div>
+        </div>
+
+        <button id="btn-reset" class="btn-reset">
+          <i class="fa-solid fa-rotate-left"></i> Reset Filters
+        </button>
+      </div>
+
+      <!-- Map Card -->
+      <div class="map-card">
+        <div class="card-header">
+          <div class="card-title">
+            <i class="fa-solid fa-earth-americas" style="color: var(--primary);"></i>
+            Freight Route Density & Corridor Flow Map
+          </div>
+          <div class="tabs">
+            <span class="badge" id="map-visible-lanes">Showing Top Corridors</span>
+          </div>
+        </div>
+        <div id="map"></div>
+      </div>
+    </div>
+
+    <!-- Analytics Charts Grid -->
+    <div class="analytics-grid">
+      <!-- Top Corridors Bar Chart -->
+      <div class="chart-card">
+        <div class="card-title">
+          <i class="fa-solid fa-chart-column" style="color: var(--accent-purple);"></i>
+          Top 10 Most Frequent Freight Corridors
+        </div>
+        <div class="chart-container">
+          <canvas id="lanesChart"></canvas>
+        </div>
+      </div>
+
+      <!-- State to State Flow Chart -->
+      <div class="chart-card">
+        <div class="card-title">
+          <i class="fa-solid fa-chart-pie" style="color: var(--accent-amber);"></i>
+          Top Interstate Freight Flows (State → State)
+        </div>
+        <div class="chart-container">
+          <canvas id="stateFlowChart"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- Leaderboard & Detailed Data Table -->
+    <div class="table-card">
+      <div class="card-header">
+        <div class="card-title">
+          <i class="fa-solid fa-list-ol" style="color: var(--accent-emerald);"></i>
+          Corridor Leaderboard & Frequency Ranking
+        </div>
+        <div class="tabs">
+          <button class="tab-btn active" id="tab-city">City-to-City Lanes</button>
+          <button class="tab-btn" id="tab-state">State-to-State Flows</button>
+        </div>
+      </div>
+      <div class="table-wrapper">
+        <table id="leaderboard-table">
+          <thead>
+            <tr>
+              <th style="width: 60px;">Rank</th>
+              <th>Origin Hub</th>
+              <th>Destination Hub</th>
+              <th>Total Bids / Shipments</th>
+              <th>Avg Miles</th>
+              <th>Avg Lbs</th>
+              <th>Response Rate</th>
+              <th>Award Rate</th>
+            </tr>
+          </thead>
+          <tbody id="leaderboard-body">
+            <!-- Dynamic Rows -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Leaflet JS & Chart.js -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  
+  <!-- App JS -->
+  <script src="app.js"></script>
+</body>
+</html>
