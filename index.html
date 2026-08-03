@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Carrier Route Frequency Visualizer & Analytics</title>
+  <title>Route Frequency & Flight Log Intelligence</title>
   <!-- Google Fonts & Icons -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -22,19 +22,26 @@
   <nav class="navbar">
     <div class="brand">
       <div class="brand-icon">
-        <i class="fa-solid => fa-route"></i>
+        <i class="fa-solid fa-plane-departure"></i>
       </div>
       <div>
-        <div class="brand-title">Route Frequency Intelligence</div>
-        <div class="brand-subtitle">Carrier Bidding & Freight Flow Analytics (8,572 Records)</div>
+        <div class="brand-title">Route & Flight Intelligence</div>
+        <div class="brand-subtitle">GTA Flight Logs & Carrier Bidding Analytics</div>
       </div>
     </div>
     <div class="nav-stats">
       <div class="badge">
-        <i class="fa-solid fa-layer-group"></i> <span id="nav-lane-count">1,935 Lanes</span>
+        <i class="fa-solid fa-database"></i>
+        <select id="dataset-selector" class="dataset-select">
+          <option value="gta">✈️ GTA Flight Logs (15,545 Flights)</option>
+          <option value="carrier">🚛 Carrier Bidding Stats (8,559 Bids)</option>
+        </select>
       </div>
       <div class="badge">
-        <i class="fa-solid fa-truck-ramp-box"></i> <span id="nav-shipment-count">8,559 Shipments</span>
+        <i class="fa-solid fa-layer-group"></i> <span id="nav-lane-count">2,091 Routes</span>
+      </div>
+      <div class="badge">
+        <i class="fa-solid fa-plane-circle-check"></i> <span id="nav-shipment-count">15,545 Logs</span>
       </div>
     </div>
   </nav>
@@ -44,11 +51,11 @@
     <div class="kpi-grid">
       <div class="kpi-card">
         <div class="kpi-icon blue">
-          <i class="fa-solid fa-boxes-stacked"></i>
+          <i class="fa-solid fa-plane-flight"></i>
         </div>
         <div class="kpi-data">
-          <div class="kpi-value" id="kpi-shipments">8,559</div>
-          <div class="kpi-label">Total Bids Analyzed</div>
+          <div class="kpi-value" id="kpi-shipments">15,545</div>
+          <div class="kpi-label" id="kpi-shipments-label">Total Flights Logged</div>
         </div>
       </div>
 
@@ -57,8 +64,8 @@
           <i class="fa-solid fa-map-location-dot"></i>
         </div>
         <div class="kpi-data">
-          <div class="kpi-value" id="kpi-lanes">1,935</div>
-          <div class="kpi-label">Active Route Lanes</div>
+          <div class="kpi-value" id="kpi-lanes">2,091</div>
+          <div class="kpi-label">Active Flight Corridors</div>
         </div>
       </div>
 
@@ -67,18 +74,18 @@
           <i class="fa-solid fa-fire"></i>
         </div>
         <div class="kpi-data">
-          <div class="kpi-value" id="kpi-busiest" style="font-size: 1.1rem; font-weight:700;">El Paso → Everett</div>
-          <div class="kpi-label">Top Corridor (454 Bids)</div>
+          <div class="kpi-value" id="kpi-busiest" style="font-size: 1.1rem; font-weight:700;">FRG → IAD</div>
+          <div class="kpi-label" id="kpi-busiest-label">Top Flight Corridor (1,847)</div>
         </div>
       </div>
 
       <div class="kpi-card">
         <div class="kpi-icon emerald">
-          <i class="fa-solid fa-warehouse"></i>
+          <i class="fa-solid fa-plane-arrival"></i>
         </div>
         <div class="kpi-data">
-          <div class="kpi-value" id="kpi-origin">Laredo, TX</div>
-          <div class="kpi-label">Top Origin Hub (1,190 Bids)</div>
+          <div class="kpi-value" id="kpi-origin">IAD (Dulles)</div>
+          <div class="kpi-label" id="kpi-origin-label">Top Airport Hub (4,910)</div>
         </div>
       </div>
     </div>
@@ -88,34 +95,50 @@
       <!-- Filter Sidebar -->
       <div class="sidebar">
         <div class="sidebar-title">
-          <span><i class="fa-solid fa-filter"></i> Filter Corridors</span>
+          <span><i class="fa-solid fa-filter"></i> Filter Flight Logs</span>
           <i class="fa-solid fa-sliders"></i>
         </div>
 
         <div class="filter-group">
-          <label class="filter-label">Search Location / City</label>
-          <input type="text" id="filter-search" class="filter-input" placeholder="e.g. Laredo, El Paso, Everett...">
+          <label class="filter-label">Search Airport Code / City</label>
+          <input type="text" id="filter-search" class="filter-input" placeholder="e.g. IAD, FRG, ADS, El Paso...">
+        </div>
+
+        <!-- GTA Aircraft Filter -->
+        <div class="filter-group" id="group-aircraft">
+          <label class="filter-label">Aircraft Type</label>
+          <select id="filter-aircraft" class="filter-select">
+            <option value="">All Aircraft Types</option>
+          </select>
+        </div>
+
+        <!-- GTA Category Filter -->
+        <div class="filter-group" id="group-category">
+          <label class="filter-label">Flight Category</label>
+          <select id="filter-category" class="filter-select">
+            <option value="">All Flight Categories</option>
+          </select>
         </div>
 
         <div class="filter-group">
-          <label class="filter-label">Origin State</label>
+          <label class="filter-label">Origin Location / State</label>
           <select id="filter-origin-state" class="filter-select">
-            <option value="">All Origin States</option>
+            <option value="">All Origins</option>
           </select>
         </div>
 
         <div class="filter-group">
-          <label class="filter-label">Destination State</label>
+          <label class="filter-label">Destination Location / State</label>
           <select id="filter-dest-state" class="filter-select">
-            <option value="">All Destination States</option>
+            <option value="">All Destinations</option>
           </select>
         </div>
 
         <div class="filter-group">
-          <label class="filter-label">Min Route Frequency (Bids)</label>
+          <label class="filter-label">Min Route Frequency</label>
           <div class="range-container">
-            <input type="range" id="filter-min-volume" class="range-slider" min="1" max="100" value="5">
-            <span class="range-val" id="range-val-text">≥ 5 Bids</span>
+            <input type="range" id="filter-min-volume" class="range-slider" min="1" max="200" value="5">
+            <span class="range-val" id="range-val-text">≥ 5 Flights</span>
           </div>
         </div>
 
@@ -129,10 +152,10 @@
         <div class="card-header">
           <div class="card-title">
             <i class="fa-solid fa-earth-americas" style="color: var(--primary);"></i>
-            Freight Route Density & Corridor Flow Map
+            <span id="map-header-title">GTA Flight Path Density & Air Corridor Map</span>
           </div>
           <div class="tabs">
-            <span class="badge" id="map-visible-lanes">Showing Top Corridors</span>
+            <span class="badge" id="map-visible-lanes">Displaying Top Flight Corridors</span>
           </div>
         </div>
         <div id="map"></div>
@@ -145,18 +168,18 @@
       <div class="chart-card">
         <div class="card-title">
           <i class="fa-solid fa-chart-column" style="color: var(--accent-purple);"></i>
-          Top 10 Most Frequent Freight Corridors
+          <span id="chart-lanes-title">Top 10 Most Frequent Flight Corridors</span>
         </div>
         <div class="chart-container">
           <canvas id="lanesChart"></canvas>
         </div>
       </div>
 
-      <!-- State to State Flow Chart -->
+      <!-- State to State / Category Flow Chart -->
       <div class="chart-card">
         <div class="card-title">
           <i class="fa-solid fa-chart-pie" style="color: var(--accent-amber);"></i>
-          Top Interstate Freight Flows (State → State)
+          <span id="chart-breakdown-title">Flight Distribution by Aircraft / Category</span>
         </div>
         <div class="chart-container">
           <canvas id="stateFlowChart"></canvas>
@@ -169,25 +192,23 @@
       <div class="card-header">
         <div class="card-title">
           <i class="fa-solid fa-list-ol" style="color: var(--accent-emerald);"></i>
-          Corridor Leaderboard & Frequency Ranking
+          <span id="table-title">Flight Corridor Frequency Leaderboard</span>
         </div>
         <div class="tabs">
-          <button class="tab-btn active" id="tab-city">City-to-City Lanes</button>
-          <button class="tab-btn" id="tab-state">State-to-State Flows</button>
+          <button class="tab-btn active" id="tab-city">City / Airport Routes</button>
+          <button class="tab-btn" id="tab-state">State / Hub Flows</button>
         </div>
       </div>
       <div class="table-wrapper">
         <table id="leaderboard-table">
           <thead>
-            <tr>
+            <tr id="table-header-row">
               <th style="width: 60px;">Rank</th>
-              <th>Origin Hub</th>
-              <th>Destination Hub</th>
-              <th>Total Bids / Shipments</th>
-              <th>Avg Miles</th>
-              <th>Avg Lbs</th>
-              <th>Response Rate</th>
-              <th>Award Rate</th>
+              <th>Origin Airport / Hub</th>
+              <th>Destination Airport / Hub</th>
+              <th>Total Flights / Bids</th>
+              <th>Top Aircraft</th>
+              <th>Top Category</th>
             </tr>
           </thead>
           <tbody id="leaderboard-body">
@@ -199,6 +220,7 @@
   </div>
 
   <!-- Leaflet JS & Chart.js -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"></script>
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   

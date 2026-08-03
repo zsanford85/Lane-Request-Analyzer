@@ -39,7 +39,7 @@ body {
   background: rgba(30, 41, 59, 0.85);
   backdrop-filter: blur(12px);
   border-bottom: 1px solid var(--border-color);
-  padding: 1rem 2rem;
+  padding: 0.85rem 2rem;
   position: sticky;
   top: 0;
   z-index: 1000;
@@ -82,7 +82,8 @@ body {
 
 .nav-stats {
   display: flex;
-  gap: 1.5rem;
+  align-items: center;
+  gap: 1rem;
 }
 
 .badge {
@@ -96,6 +97,21 @@ body {
   display: flex;
   align-items: center;
   gap: 0.4rem;
+}
+
+.dataset-select {
+  background: transparent;
+  border: none;
+  color: var(--primary);
+  font-weight: 700;
+  font-size: 0.85rem;
+  outline: none;
+  cursor: pointer;
+}
+
+.dataset-select option {
+  background: #1e293b;
+  color: #f8fafc;
 }
 
 /* Container & Grid Layout */
@@ -157,7 +173,6 @@ body {
   font-size: 1.5rem;
   font-weight: 800;
   color: var(--text-main);
-
 }
 
 .kpi-label {
@@ -196,7 +211,6 @@ body {
   align-items: center;
   justify-content: space-between;
   color: var(--text-main);
-
   border-bottom: 1px solid var(--border-color);
   padding-bottom: 0.75rem;
 }
