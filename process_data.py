@@ -1,4 +1,5 @@
 import os
+import sys
 import re
 import json
 import time
@@ -58,14 +59,6 @@ KNOWN_CITIES = {
     "Brownsville, TX": [25.9017, -97.4975],
     "San Luis Potosi, SL": [22.1565, -100.9855],
     "Monterrey, NL": [25.6866, -100.3161],
-    "Querétaro, QT": [20.5888, -100.3899],
-    "Guadalajara, JA": [20.6597, -103.3496],
-    "Toluca, EM": [19.2826, -99.6557],
-    "Silao, GJ": [20.9437, -101.4277],
-    "Ramos Arizpe, CU": [25.5401, -100.9482],
-    "Nuevo Laredo, TM": [27.4864, -99.5076],
-    "Juarez, CH": [31.6904, -106.4245],
-    "Tijuana, BN": [32.5149, -117.0382],
 }
 
 class TableParser(HTMLParser):
@@ -114,8 +107,26 @@ def parse_loc(loc_str):
         return city, state, zip_code
     return loc_str.title(), "", ""
 
+def resolve_target_file():
+    if len(sys.argv) > 1 and os.path.exists(sys.argv[1]):
+        return sys.argv[1]
+    
+    data_dir = 'data'
+    if os.path.exists(data_dir):
+        for f in os.listdir(data_dir):
+            if f.endswith('.xls') or f.endswith('.xlsx') or f.endswith('.csv'):
+                return os.path.join(data_dir, f)
+
+    default_path = '/Users/zsanford/Library/CloudStorage/OneDrive-Axio/CarrierBiddingStatsDetailReport.xls'
+    if os.path.exists(default_path):
+        return default_path
+    
+    raise FileNotFoundError("Could not find report file! Pass file path via: python3 process_data.py /path/to/report.xls")
+
 def main():
-    filepath = '/Users/zsanford/Library/CloudStorage/OneDrive-Axio/CarrierBiddingStatsDetailReport.xls'
+    filepath = resolve_target_file()
+    print(f"Processing data file: {filepath}")
+
     with open(filepath, 'r', encoding='utf-8', errors='ignore') as f:
         content = f.read()
 
@@ -123,7 +134,7 @@ def main():
     parser.feed(content)
 
     data_rows = [r for r in parser.rows if len(r) == 17 and r[0] != 'Shipment']
-    print(f"Total shipment records: {len(data_rows)}")
+    print(f"Total shipment records found: {len(data_rows)}")
 
     geo_cache_path = 'geo_cache.json'
     geo_cache = {}
@@ -266,7 +277,7 @@ def main():
     with open('route_data.json', 'w') as f:
         json.dump(output_data, f, indent=2)
 
-    print("Successfully generated route_data.json!")
+    print("Successfully updated route_data.json!")
 
 if __name__ == '__main__':
     main()
